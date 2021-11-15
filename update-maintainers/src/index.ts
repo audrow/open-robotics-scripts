@@ -1,9 +1,15 @@
 import { clone } from "https://deno.land/x/clone@v1.0.6/mod.ts";
-import { join } from "https://deno.land/std@0.114.0/path/mod.ts";
-import { walk } from "https://deno.land/std@0.114.0/fs/walk.ts";
+import { join, walk } from "../deps.ts";
 
+import { listItems } from "./utils/index.ts";
 import { getMaintainers, setMaintainers } from "./maintainer-files/index.ts";
 import { maintainer } from "./maintainer-files/types.ts";
+import {
+  checkoutBranch,
+  makeCommit,
+  makePullRequest,
+  pushBranch,
+} from "./cli/index.ts";
 
 type repo = {
   url: string;
@@ -20,14 +26,14 @@ const audrow: maintainer = {
 //   name: "Michelley Chen",
 //   email: "michelley@kimo.com",
 // };
-// const aditya = {
-//   name: "Aditya Pande",
-//   email: "aditya.pande@openrobotics.org",
-// };
-// const michael = {
-//   name: "Michael Jeronimo",
-//   email: "michael.jeronimo@openrobotics.org",
-// };
+const aditya = {
+  name: "Aditya Pande",
+  email: "aditya.pande@openrobotics.org",
+};
+const michael = {
+  name: "Michael Jeronimo",
+  email: "michael.jeronimo@openrobotics.org",
+};
 
 const repos: repo[] = [
   {
@@ -71,8 +77,10 @@ async function getPathsToFiles(path: string, match: RegExp[]) {
 }
 
 function isObjectsEqual(
-  obj1: Record<string, unknown>,
-  obj2: Record<string, unknown>,
+  // deno-lint-ignore no-explicit-any
+  obj1: Record<string, any>,
+  // deno-lint-ignore no-explicit-any
+  obj2: Record<string, any>,
 ) {
   return JSON.stringify(obj1) === JSON.stringify(obj2);
 }
@@ -103,87 +111,41 @@ async function updateMaintainers(repo: repo) {
   return { errors: updateErrors };
 }
 
-function listItems(items: string[]) {
-  if (items.length === 0) {
-    return "";
-  } else if (items.length === 1) {
-    return items[0];
-  } else if (items.length === 2) {
-    return items.join(" and ");
-  } else {
-    return items.slice(0, -1).join(", ") + ", and " + items[items.length - 1];
-  }
-}
-
-async function makeCommit(path: string, maintainers: maintainer[]) {
-  const maintainerNames = listItems(maintainers.map((m) => m.name));
-  const commitMessage = `Update maintainers to ${maintainerNames}`;
-
-  await sequentialCommandRunner(path, [
-    ["git", "add", "."],
-    ["git", "commit", "-sm", commitMessage],
-  ]);
-}
-
-async function commandRunner(cwd: string, command: string[]) {
-  const cmd = Deno.run({
-    cmd: command,
-    cwd,
-    stdout: "null",
-    stdin: "null",
-  });
-  const status = await cmd.status();
-  if (!status.success) {
-    throw new Error(`Command failed: '${command.join(" ")}'`);
-  }
-}
-
-async function sequentialCommandRunner(cwd: string, commands: string[][]) {
-  for (const command of commands) {
-    await commandRunner(cwd, command);
-  }
-}
-
-async function checkoutBranch(cwd: string, branch: string) {
-  await commandRunner(cwd, ["git", "checkout", "-b", branch]);
-}
-
-const tempDir = "temp";
-// await Deno.remove(tempDir, { recursive: true });
-const allErrors: UpdateError[] = [];
-for (const repo of repos) {
-  if (!repo.path) {
-    repo.path = await cloneRepo(repo.url, tempDir);
-  }
-  await checkoutBranch(repo.path, "update-maintainers");
-  const { errors } = await updateMaintainers(repo);
-  allErrors.push(...errors);
-  // if (errors.length === 0) {
-  await makeCommit(repo.path, repo.maintainers);
-  await sequentialCommandRunner(repo.path, [
-    ["git", "push", "origin", "update-maintainers", "--force"],
-    [
-      "gh",
-      "pr",
-      "create",
-      "--base",
-      "master",
-      "--repo",
+async function main() {
+  const tempDir = await Deno.makeTempDir();
+  const workingBranch = "update-maintainers";
+  const allErrors: UpdateError[] = [];
+  for (const repo of repos) {
+    if (!repo.path) {
+      repo.path = await cloneRepo(repo.url, tempDir);
+    }
+    await checkoutBranch(repo.path, workingBranch);
+    const { errors } = await updateMaintainers(repo);
+    allErrors.push(...errors);
+    // if (errors.length === 0) {
+    const maintainerNames = listItems(repo.maintainers.map((m) => m.name));
+    const commitMessage = `Update maintainers to ${maintainerNames}`;
+    await makeCommit(repo.path, commitMessage);
+    await pushBranch(repo.path, workingBranch, true);
+    await makePullRequest(
+      repo.path,
       "audrow/ros2cli",
-      "--title",
+      repo.branch,
       "Update maintainers",
-      "--body",
-      "See the output of the command.",
-    ],
-  ]);
-  // }
+      commitMessage + ".",
+    );
+    // }
+  }
+  if (allErrors.length > 0) {
+    console.error(
+      `\n${allErrors.length} errors occurred while updating maintainers.`,
+    );
+    console.log("Errors");
+    allErrors.forEach((error) => {
+      console.error(`- ${error.error.message}`);
+    });
+  }
+  await Deno.remove(tempDir, { recursive: true });
 }
-if (allErrors.length > 0) {
-  console.error(
-    `\n${allErrors.length} errors occurred while updating maintainers.`,
-  );
-  console.log("Errors");
-  allErrors.forEach((error) => {
-    console.error(`- ${error.error.message}`);
-  });
-}
+
+await main();
