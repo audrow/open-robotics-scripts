@@ -1,6 +1,6 @@
-import { maintainer } from "../types.ts";
+import { Maintainer } from "../types.ts";
 
-export const MAINTAINERS: maintainer[] = [
+export const MAINTAINERS: Maintainer[] = [
   {
     name: "Foo Bar",
     email: "foo@fake.org",

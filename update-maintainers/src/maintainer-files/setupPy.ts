@@ -1,4 +1,4 @@
-import type { maintainer } from "./types.ts";
+import type { Maintainer } from "./types.ts";
 
 export function getSetupPyMaintainers(path: string, text: string) {
   const nameMatches = text.match(/maintainer=["|'](.*)["|']/);
@@ -13,7 +13,7 @@ export function getSetupPyMaintainers(path: string, text: string) {
       `Number of maintainer names does not match number of emails: ${path}`,
     );
   }
-  const out: maintainer[] = [];
+  const out: Maintainer[] = [];
   for (let i = 0; i < names.length; i++) {
     out.push({
       name: names[i],
@@ -26,7 +26,7 @@ export function getSetupPyMaintainers(path: string, text: string) {
 export function setSetupPyMaintainers(
   path: string,
   text: string,
-  maintainers: maintainer[],
+  maintainers: Maintainer[],
 ) {
   // Build replacement maintainer name string
   const maintainerNameRegex = /( *)maintainer=(?:.*),\n/;

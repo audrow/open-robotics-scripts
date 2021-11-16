@@ -1,9 +1,16 @@
-import { clone } from "https://deno.land/x/clone@v1.0.6/mod.ts";
-import { join, walk } from "../deps.ts";
+import { clone, exists, join } from "../deps.ts";
 
-import { isObjectsEqual, listItems } from "./utils/index.ts";
-import { getMaintainers, setMaintainers } from "./maintainer-files/index.ts";
-import { maintainer } from "./maintainer-files/types.ts";
+import {
+  getRepo,
+  getRepoParts,
+  listItems,
+} from "./utils/index.ts";
+import { updateMaintainers } from "./maintainer-files/index.ts"
+import type {
+  Repository,
+  Maintainer,
+  UpdateError,
+} from "./maintainer-files/types.ts";
 import {
   checkoutBranch,
   makeCommit,
@@ -11,14 +18,8 @@ import {
   pushBranch,
 } from "./cli/index.ts";
 
-type repo = {
-  url: string;
-  maintainers: maintainer[];
-  branch: string;
-  path?: string;
-};
 
-const audrow: maintainer = {
+const audrow: Maintainer = {
   name: "Audrow Nash",
   email: "audrow@openrobotics.org",
 };
@@ -35,7 +36,7 @@ const michael = {
   email: "michael.jeronimo@openrobotics.org",
 };
 
-const repos: repo[] = [
+const repos: Repository[] = [
   {
     url: "https://github.com/audrow/ros2cli",
     maintainers: [
@@ -54,78 +55,60 @@ const repos: repo[] = [
   // },
 ];
 
-async function cloneRepo(url: string, baseDir = "temp") {
-  const match = url.match(/github.com\/(.*)\/(.*)/);
-  if (!match) {
-    throw new Error("Could not parse repo url");
+async function main(args: {
+  pullRequestTitle?: string;
+  workingBranch?: string;
+  isDryRun?: boolean; // avoids pushing and making the PR
+  isOverwrite?: boolean; // overwrites the existing contents in the temp dir
+  isVerbose?: boolean;
+} = {}) {
+  if (!args.pullRequestTitle) {
+    args.pullRequestTitle = "Update maintainers";
   }
-  const org = match[1];
-  const repoName = match[2];
-  const dest = join(baseDir, org, repoName);
-  await clone(url, dest);
-  return dest;
-}
-
-async function getPathsToFiles(path: string, match: RegExp[]) {
-  const paths: string[] = [];
-  for await (
-    const entry of walk(path, { match: match })
-  ) {
-    paths.push(entry.path);
+  if (!args.workingBranch) {
+    args.workingBranch = "update-maintainers";
   }
-  return paths;
-}
 
-type UpdateError = {
-  path: string;
-  error: Error;
-};
-
-async function updateMaintainers(repo: repo) {
-  if (!repo.path) {
-    throw new Error("Repo path not set");
-  }
-  const paths = await getPathsToFiles(repo.path, [/package.xml$/, /setup.py$/]);
-  const updateErrors: UpdateError[] = [];
-  paths.forEach(async (path) => {
-    try {
-      const fileText = await Deno.readTextFile(path);
-      const currentMaintainers = getMaintainers(path, fileText);
-      if (!isObjectsEqual(currentMaintainers, repo.maintainers)) {
-        const newFileText = setMaintainers(path, fileText, repo.maintainers);
-        await Deno.writeTextFile(path, newFileText);
-      }
-    } catch (error) {
-      updateErrors.push({ path, error });
+  const tempDir = "temp";
+  if (await exists(tempDir)) {
+    if (args.isOverwrite) {
+      await Deno.remove(tempDir, { recursive: true });
+    } else {
+      throw new Error("Temp directory already exists");
     }
-  });
-  return { errors: updateErrors };
-}
-
-async function main() {
-  const tempDir = await Deno.makeTempDir();
-  const workingBranch = "update-maintainers";
+  }
   const allErrors: UpdateError[] = [];
   for (const repo of repos) {
     if (!repo.path) {
-      repo.path = await cloneRepo(repo.url, tempDir);
+      const { orgName, repoName } = getRepoParts(repo.url);
+      const dest = join(tempDir, orgName, repoName);
+      await clone(repo.url, dest);
+      repo.path = dest;
     }
-    await checkoutBranch(repo.path, workingBranch);
+
+    repo.maintainers.sort((a, b) => a.name.localeCompare(b.name));
+
+    await checkoutBranch(repo.path, args.workingBranch);
     const { errors } = await updateMaintainers(repo);
     allErrors.push(...errors);
-    // if (errors.length === 0) {
-    const maintainerNames = listItems(repo.maintainers.map((m) => m.name));
-    const commitMessage = `Update maintainers to ${maintainerNames}`;
-    await makeCommit(repo.path, commitMessage);
-    await pushBranch(repo.path, workingBranch, true);
-    await makePullRequest(
-      repo.path,
-      "audrow/ros2cli",
-      repo.branch,
-      "Update maintainers",
-      commitMessage + ".",
-    );
-    // }
+    if (errors.length === 0) {
+      const maintainerNames = listItems(repo.maintainers.map((m) => m.name));
+      const commitMessage = `Update maintainers to ${maintainerNames}`;
+      await makeCommit(repo.path, commitMessage, { isVerbose: args.isVerbose });
+      await pushBranch({
+        cwd: repo.path,
+        branch: args.workingBranch,
+        isForce: true,
+      }, { isVerbose: args.isVerbose, isDryRun: args.isDryRun });
+      const repoName = getRepo(repo.url);
+      await makePullRequest({
+        cwd: repo.path,
+        repo: repoName,
+        baseBranch: repo.branch,
+        title: args.pullRequestTitle,
+        body: commitMessage + ".",
+      }, { isVerbose: args.isVerbose, isDryRun: args.isDryRun });
+    }
   }
   if (allErrors.length > 0) {
     console.error(
@@ -136,7 +119,6 @@ async function main() {
       console.error(`- ${error.error.message}`);
     });
   }
-  await Deno.remove(tempDir, { recursive: true });
 }
 
-await main();
+await main({ isOverwrite: true, isDryRun: false, isVerbose: false });

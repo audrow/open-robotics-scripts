@@ -1,6 +1,6 @@
-import { assertEquals } from "../../deps.test.ts";
+import { assertEquals, assertThrows } from "../../deps.test.ts";
 
-import { isObjectsEqual, listItems } from "./index.ts";
+import { getRepo, getRepoParts, isObjectsEqual, listItems } from "./index.ts";
 
 Deno.test("list different number of items", () => {
   const testCases: { input: string[]; expected: string; comment: string }[] = [
@@ -84,5 +84,27 @@ Deno.test("compare objects", () => {
       isObjectsEqual(testCase.object1, testCase.object2),
       testCase.comment,
     );
+  });
+});
+
+Deno.test("get repo parts", () => {
+  const url = "https://github.com/audrow/ros2cli";
+  assertEquals(
+    { orgName: "audrow", repoName: "ros2cli" },
+    getRepoParts(url),
+  );
+  assertEquals(
+    "audrow/ros2cli",
+    getRepo(url),
+  );
+});
+
+Deno.test("get repo throws on bad URL", () => {
+  const url = "https://google.com";
+  assertThrows(() => {
+    getRepoParts(url);
+  });
+  assertThrows(() => {
+    getRepo(url);
   });
 });

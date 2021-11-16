@@ -1,3 +1,5 @@
+import { walk } from "../../deps.ts";
+
 export function listItems(items: string[]) {
   if (items.length === 0) {
     return "";
@@ -17,4 +19,29 @@ export function isObjectsEqual(
   obj2: Record<string, any>,
 ) {
   return JSON.stringify(obj1) === JSON.stringify(obj2);
+}
+
+export function getRepoParts(url: string) {
+  const match = url.match(/github.com\/(.*)\/(.*)/);
+  if (!match) {
+    throw new Error("Could not parse repo url");
+  }
+  const orgName = match[1];
+  const repoName = match[2];
+  return { orgName, repoName };
+}
+
+export function getRepo(url: string) {
+  const { orgName, repoName } = getRepoParts(url);
+  return `${orgName}/${repoName}`;
+}
+
+export async function getPathsToFiles(path: string, match: RegExp[]) {
+  const paths: string[] = [];
+  for await (
+    const entry of walk(path, { match: match })
+  ) {
+    paths.push(entry.path);
+  }
+  return paths;
 }

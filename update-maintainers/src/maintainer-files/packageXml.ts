@@ -1,4 +1,4 @@
-import type { maintainer } from "./types.ts";
+import type { Maintainer } from "./types.ts";
 
 export function getPackageXmlMaintainers(path: string, text: string) {
   const matches = [
@@ -11,14 +11,14 @@ export function getPackageXmlMaintainers(path: string, text: string) {
     return {
       name: match[2],
       email: match[1],
-    } as maintainer;
+    } as Maintainer;
   });
 }
 
 export function setPackageXmlMaintainers(
   path: string,
   text: string,
-  maintainers: maintainer[],
+  maintainers: Maintainer[],
 ) {
   const maintainerRegex =
     /( *)(?:<maintainer email="(?:.*)">(?:.*)<\/maintainer>\s*)+/;

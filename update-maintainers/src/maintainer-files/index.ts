@@ -3,8 +3,34 @@ import {
   getPackageXmlMaintainers,
   setPackageXmlMaintainers,
 } from "./packageXml.ts";
+import {
+  getPathsToFiles,
+  isObjectsEqual,
+} from "../utils/index.ts"
 
-import type { maintainer } from "./types.ts";
+import type { Maintainer, UpdateError, Repository } from "./types.ts";
+
+export async function updateMaintainers(repo: Repository) {
+  if (!repo.path) {
+    throw new Error("Repo path not set");
+  }
+  const paths = await getPathsToFiles(repo.path, [/package.xml$/, /setup.py$/]);
+  const updateErrors: UpdateError[] = [];
+  paths.forEach(async (path) => {
+    try {
+      const fileText = await Deno.readTextFile(path);
+      const currentMaintainers = getMaintainers(path, fileText);
+      if (!isObjectsEqual(currentMaintainers, repo.maintainers)) {
+        const newFileText = setMaintainers(path, fileText, repo.maintainers);
+        await Deno.writeTextFile(path, newFileText);
+      }
+    } catch (error) {
+      updateErrors.push({ path, error });
+    }
+  });
+  return { errors: updateErrors };
+}
+
 
 export function getMaintainers(path: string, text: string) {
   if (path.endsWith("setup.py")) {
@@ -19,7 +45,7 @@ export function getMaintainers(path: string, text: string) {
 export function setMaintainers(
   path: string,
   text: string,
-  maintainers: maintainer[],
+  maintainers: Maintainer[],
 ) {
   if (path.endsWith("setup.py")) {
     return setSetupPyMaintainers(path, text, maintainers);
