@@ -5,6 +5,7 @@ import {
 } from "../../deps.test.ts";
 import {
   MAINTAINERS,
+  MAINTAINERS_READ,
   SETUP_PY,
   SETUP_PY_MODIFIED,
   SETUP_PY_NO_MAINTAINERS,
@@ -16,8 +17,8 @@ const PATH = "setup.py";
 
 Deno.test("get maintainers", () => {
   const maintainers = getSetupPyMaintainers(PATH, SETUP_PY_MODIFIED);
-  assertEquals(MAINTAINERS.length, maintainers.length);
-  assertEquals(MAINTAINERS, maintainers);
+  assertEquals(MAINTAINERS_READ.length, maintainers.length);
+  assertEquals(MAINTAINERS_READ, maintainers);
 });
 
 Deno.test("set maintainers", () => {
@@ -26,7 +27,7 @@ Deno.test("set maintainers", () => {
   const newMaintainers = getSetupPyMaintainers(PATH, SETUP_PY_MODIFIED);
 
   assertEquals(SETUP_PY_MODIFIED, newPackageXml);
-  assertEquals(MAINTAINERS, newMaintainers);
+  assertEquals(MAINTAINERS_READ, newMaintainers);
   assertNotEquals(originalMaintainers, newMaintainers);
 });
 

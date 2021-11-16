@@ -5,6 +5,7 @@ import {
 } from "../../deps.test.ts";
 import {
   MAINTAINERS,
+  MAINTAINERS_READ,
   PACKAGE_XML,
   PACKAGE_XML_MODIFIED,
   PACKAGE_XML_NO_MAINTAINERS,
@@ -19,8 +20,8 @@ const PATH = "package.xml";
 
 Deno.test("get maintainers", () => {
   const maintainers = getPackageXmlMaintainers(PATH, PACKAGE_XML_MODIFIED);
-  assertEquals(MAINTAINERS.length, maintainers.length);
-  assertEquals(MAINTAINERS, maintainers);
+  assertEquals(MAINTAINERS_READ.length, maintainers.length);
+  assertEquals(MAINTAINERS_READ, maintainers);
 });
 
 Deno.test("set maintainers", () => {
@@ -33,7 +34,7 @@ Deno.test("set maintainers", () => {
   const newMaintainers = getPackageXmlMaintainers(PATH, PACKAGE_XML_MODIFIED);
 
   assertEquals(PACKAGE_XML_MODIFIED, newPackageXml);
-  assertEquals(MAINTAINERS, newMaintainers);
+  assertEquals(MAINTAINERS_READ, newMaintainers);
   assertNotEquals(originalMaintainers, newMaintainers);
 });
 

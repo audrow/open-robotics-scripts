@@ -1,4 +1,4 @@
-import type { Maintainer } from "./types.ts";
+import type { Maintainer, ReadMaintainer } from "../config/types.ts";
 
 export function getPackageXmlMaintainers(path: string, text: string) {
   const matches = [
@@ -11,7 +11,7 @@ export function getPackageXmlMaintainers(path: string, text: string) {
     return {
       name: match[2],
       email: match[1],
-    } as Maintainer;
+    } as ReadMaintainer;
   });
 }
 

@@ -1,19 +1,27 @@
-import { Maintainer } from "../types.ts";
+import { Maintainer, ReadMaintainer } from "../../config/types.ts";
 
 export const MAINTAINERS: Maintainer[] = [
   {
+    id: "foo",
     name: "Foo Bar",
     email: "foo@fake.org",
   },
   {
+    id: "bar",
     name: "Bar Baz",
     email: "bar@fake.org",
   },
   {
+    id: "baz",
     name: "Baz Foo",
     email: "baz@fake.org",
   },
 ];
+
+export const MAINTAINERS_READ: ReadMaintainer[] = MAINTAINERS.map((m) => ({
+  name: m.name,
+  email: m.email,
+}));
 
 export const PACKAGE_XML = `<?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format2.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>

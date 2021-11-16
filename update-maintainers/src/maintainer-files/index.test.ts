@@ -1,6 +1,7 @@
 import { getMaintainers, setMaintainers } from "./index.ts";
 import {
   MAINTAINERS,
+  MAINTAINERS_READ,
   PACKAGE_XML,
   PACKAGE_XML_MODIFIED,
   SETUP_PY,
@@ -14,8 +15,8 @@ const PACKAGE_XML_PATH = "package.xml";
 
 Deno.test("get maintainers from setup.py", () => {
   const maintainers = getMaintainers(SETUP_PY_PATH, SETUP_PY_MODIFIED);
-  assertEquals(MAINTAINERS.length, maintainers.length);
-  assertEquals(MAINTAINERS, maintainers);
+  assertEquals(MAINTAINERS_READ.length, maintainers.length);
+  assertEquals(MAINTAINERS_READ, maintainers);
 });
 
 Deno.test("set maintainers in setup.py", () => {
@@ -25,8 +26,8 @@ Deno.test("set maintainers in setup.py", () => {
 
 Deno.test("get maintainers from package.xml", () => {
   const maintainers = getMaintainers(PACKAGE_XML_PATH, PACKAGE_XML_MODIFIED);
-  assertEquals(MAINTAINERS.length, maintainers.length);
-  assertEquals(MAINTAINERS, maintainers);
+  assertEquals(MAINTAINERS_READ.length, maintainers.length);
+  assertEquals(MAINTAINERS_READ, maintainers);
 });
 
 Deno.test("set maintainers in package.xml", () => {

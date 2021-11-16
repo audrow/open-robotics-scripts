@@ -5,20 +5,24 @@ import {
 } from "./packageXml.ts";
 import { getPathsToFiles, isObjectsEqual } from "../utils/index.ts";
 
-import type { Maintainer, Repository, UpdateError } from "./types.ts";
+import type { UpdateError } from "./types.ts";
+import type { Maintainer } from "../config/types.ts";
 
-export async function updateMaintainers(repo: Repository) {
-  if (!repo.path) {
+export async function updateMaintainers(
+  path: string,
+  maintainers: Maintainer[],
+) {
+  if (!path) {
     throw new Error("Repo path not set");
   }
-  const paths = await getPathsToFiles(repo.path, [/package.xml$/, /setup.py$/]);
+  const paths = await getPathsToFiles(path, [/package.xml$/, /setup.py$/]);
   const updateErrors: UpdateError[] = [];
   paths.forEach(async (path) => {
     try {
       const fileText = await Deno.readTextFile(path);
       const currentMaintainers = getMaintainers(path, fileText);
-      if (!isObjectsEqual(currentMaintainers, repo.maintainers)) {
-        const newFileText = setMaintainers(path, fileText, repo.maintainers);
+      if (!isObjectsEqual(currentMaintainers, maintainers)) {
+        const newFileText = setMaintainers(path, fileText, maintainers);
         await Deno.writeTextFile(path, newFileText);
       }
     } catch (error) {
