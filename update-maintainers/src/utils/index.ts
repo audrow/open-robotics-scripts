@@ -9,3 +9,12 @@ export function listItems(items: string[]) {
     return items.slice(0, -1).join(", ") + ", and " + items[items.length - 1];
   }
 }
+
+export function isObjectsEqual(
+  // deno-lint-ignore no-explicit-any
+  obj1: Record<string, any>,
+  // deno-lint-ignore no-explicit-any
+  obj2: Record<string, any>,
+) {
+  return JSON.stringify(obj1) === JSON.stringify(obj2);
+}

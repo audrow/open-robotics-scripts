@@ -1,7 +1,7 @@
 import { clone } from "https://deno.land/x/clone@v1.0.6/mod.ts";
 import { join, walk } from "../deps.ts";
 
-import { listItems } from "./utils/index.ts";
+import { isObjectsEqual, listItems } from "./utils/index.ts";
 import { getMaintainers, setMaintainers } from "./maintainer-files/index.ts";
 import { maintainer } from "./maintainer-files/types.ts";
 import {
@@ -74,15 +74,6 @@ async function getPathsToFiles(path: string, match: RegExp[]) {
     paths.push(entry.path);
   }
   return paths;
-}
-
-function isObjectsEqual(
-  // deno-lint-ignore no-explicit-any
-  obj1: Record<string, any>,
-  // deno-lint-ignore no-explicit-any
-  obj2: Record<string, any>,
-) {
-  return JSON.stringify(obj1) === JSON.stringify(obj2);
 }
 
 type UpdateError = {
