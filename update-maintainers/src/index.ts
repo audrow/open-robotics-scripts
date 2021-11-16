@@ -1,14 +1,10 @@
 import { clone, exists, join } from "../deps.ts";
 
-import {
-  getRepo,
-  getRepoParts,
-  listItems,
-} from "./utils/index.ts";
-import { updateMaintainers } from "./maintainer-files/index.ts"
+import { getRepo, getRepoParts, listItems } from "./utils/index.ts";
+import { updateMaintainers } from "./maintainer-files/index.ts";
 import type {
-  Repository,
   Maintainer,
+  Repository,
   UpdateError,
 } from "./maintainer-files/types.ts";
 import {
@@ -17,7 +13,6 @@ import {
   makePullRequest,
   pushBranch,
 } from "./cli/index.ts";
-
 
 const audrow: Maintainer = {
   name: "Audrow Nash",

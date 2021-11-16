@@ -3,12 +3,9 @@ import {
   getPackageXmlMaintainers,
   setPackageXmlMaintainers,
 } from "./packageXml.ts";
-import {
-  getPathsToFiles,
-  isObjectsEqual,
-} from "../utils/index.ts"
+import { getPathsToFiles, isObjectsEqual } from "../utils/index.ts";
 
-import type { Maintainer, UpdateError, Repository } from "./types.ts";
+import type { Maintainer, Repository, UpdateError } from "./types.ts";
 
 export async function updateMaintainers(repo: Repository) {
   if (!repo.path) {
@@ -30,7 +27,6 @@ export async function updateMaintainers(repo: Repository) {
   });
   return { errors: updateErrors };
 }
-
 
 export function getMaintainers(path: string, text: string) {
   if (path.endsWith("setup.py")) {
