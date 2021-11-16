@@ -1,4 +1,4 @@
-import { Config, Maintainer } from "./types.ts";
+import { Config, Maintainer, Options, Repository } from "./types.ts";
 
 import { parse } from "../../deps.ts";
 
@@ -20,4 +20,47 @@ export function getMaintainers(
     }
   });
   return out;
+}
+
+type configParts = {
+  options?: Options;
+  maintainers?: Maintainer[];
+  repositories?: Repository[];
+};
+
+export function makeConfig(parts: configParts) {
+  if (!parts.options) {
+    parts.options = {};
+  }
+  if (!parts.maintainers) {
+    parts.maintainers = [];
+  }
+  if (!parts.repositories) {
+    parts.repositories = [];
+  }
+  return {
+    options: parts.options,
+    maintainers: parts.maintainers,
+    repositories: parts.repositories,
+  } as Config;
+}
+
+export function updateConfig(
+  config: Config,
+  parts: configParts,
+) {
+  if (!parts.maintainers) {
+    parts.maintainers = [];
+  }
+  if (!parts.repositories) {
+    parts.repositories = [];
+  }
+  return makeConfig({
+    options: {
+      ...config.options,
+      ...parts.options,
+    },
+    maintainers: [...config.maintainers, ...parts.maintainers],
+    repositories: [...config.repositories, ...parts.repositories],
+  });
 }
