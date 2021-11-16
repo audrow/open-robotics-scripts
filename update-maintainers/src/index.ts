@@ -94,7 +94,7 @@ async function updateMaintainers(repo: repo) {
   if (!repo.path) {
     throw new Error("Repo path not set");
   }
-  const paths = await getPathsToFiles(repo.path, [/package.xml/, /setup.py/]);
+  const paths = await getPathsToFiles(repo.path, [/package.xml$/, /setup.py$/]);
   const updateErrors: UpdateError[] = [];
   paths.forEach(async (path) => {
     try {
