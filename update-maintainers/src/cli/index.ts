@@ -1,5 +1,3 @@
-import { sleep } from "../../deps.ts";
-
 export async function checkoutBranch(
   cwd: string,
   branch: string,
@@ -18,9 +16,6 @@ export async function makeCommit(
   commitMessage: string,
   options: CommandOptions = {},
 ) {
-  // sleeping seems to be necessary to let the file system catch up
-  // I don't like this either
-  await sleep(0.5);
   await runCommand(cwd, ["git", "commit", "-asm", commitMessage], options);
 }
 

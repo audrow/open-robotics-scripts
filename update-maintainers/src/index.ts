@@ -4,6 +4,7 @@ import {
   exists,
   join,
   parse as yamlParse,
+  sleep,
   stringify as yamlStringify,
 } from "../deps.ts";
 
@@ -75,6 +76,11 @@ async function main(config: Config) {
     if (errors.length === 0) {
       const maintainerNames = listItems(maintainers.map((m) => m.name));
       const commitMessage = `Update maintainers to ${maintainerNames}`;
+
+      // sleeping seems to be necessary to let the file system catch up
+      // I don't like this either
+      await sleep(0.5);
+
       await makeCommit(repo.path, commitMessage, {
         isVerbose: options.isVerbose,
       });
