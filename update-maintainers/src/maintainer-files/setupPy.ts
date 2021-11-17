@@ -27,6 +27,7 @@ export function setSetupPyMaintainers(
   path: string,
   text: string,
   maintainers: Maintainer[],
+  maxLineLength = 99, // todo pass this up
 ) {
   // Build replacement maintainer name string
   const maintainerNameRegex = /( *)maintainer=(?:.*),\n/;
@@ -35,9 +36,11 @@ export function setSetupPyMaintainers(
     throw new Error(`Could not find maintainer in setup.py: ${path}`);
   }
   const nameIndent = nameMatch[1];
-  const replaceNameString =
+  let replaceNameString =
     `${nameIndent}maintainer='${maintainers.map((m) => m.name).join(", ")}` +
-    "',\n";
+    "',";
+  replaceNameString = addNoqaE501IfTooLong(replaceNameString, maxLineLength);
+  replaceNameString += "\n";
 
   // Build replacement maintainer email string
   const maintainerEmailRegex = /( *)maintainer_email=(?:.*),\n/;
@@ -46,12 +49,21 @@ export function setSetupPyMaintainers(
     throw new Error(`Could not find maintainer email in setup.py: ${path}`);
   }
   const emailIndent = emailMatch[1];
-  const replaceEmailString =
+  let replaceEmailString =
     `${emailIndent}maintainer_email='${
       maintainers.map((m) => m.email).join(", ")
-    }` + "',\n";
+    }` + "',";
+  replaceEmailString = addNoqaE501IfTooLong(replaceEmailString, maxLineLength);
+  replaceEmailString += "\n";
 
   // Replace maintainer
   return text.replace(maintainerNameRegex, replaceNameString)
     .replace(maintainerEmailRegex, replaceEmailString);
+}
+
+function addNoqaE501IfTooLong(text: string, maxLength: number) {
+  if (text.length > maxLength) {
+    return text + "  # noqa: E501";
+  }
+  return text;
 }

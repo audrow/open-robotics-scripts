@@ -20,6 +20,9 @@ Here are some high level notes on the script's behavior:
   - If a maintainer is listed for a repository, but the maintainer's info is not
     provided, that repository will not be updated.
   - If a project doesn't have a maintainer listed, it will not be updated.
+- In `setup.py` files, if the added lines are too long (over 99 characters), a
+  comment will be added to the line to tell the linter to ignore checking the
+  line length (flake8 E501).
 
 ## Usage
 
