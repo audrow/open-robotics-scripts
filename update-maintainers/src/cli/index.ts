@@ -3,7 +3,7 @@ import { sleep } from "../../deps.ts";
 export async function checkoutBranch(
   cwd: string,
   branch: string,
-  isNewBranch: boolean = false,
+  isNewBranch = false,
   options: CommandOptions = {},
 ) {
   if (isNewBranch) {
