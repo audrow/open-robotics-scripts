@@ -99,6 +99,18 @@ Deno.test("get repo parts", () => {
   );
 });
 
+Deno.test("get repo parts with .git url", () => {
+  const url = "https://github.com/audrow/ros2cli.git";
+  assertEquals(
+    { orgName: "audrow", repoName: "ros2cli" },
+    getRepoParts(url),
+  );
+  assertEquals(
+    "audrow/ros2cli",
+    getRepo(url),
+  );
+});
+
 Deno.test("get repo throws on bad URL", () => {
   const url = "https://google.com";
   assertThrows(() => {

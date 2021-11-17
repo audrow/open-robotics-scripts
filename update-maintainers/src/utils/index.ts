@@ -22,7 +22,7 @@ export function isObjectsEqual(
 }
 
 export function getRepoParts(url: string) {
-  const match = url.match(/github.com\/(.*)\/(.*)/);
+  const match = url.match(/github.com\/(.*)\/([^.]*)/);
   if (!match) {
     throw new Error("Could not parse repo url");
   }
