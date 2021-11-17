@@ -1,0 +1,49 @@
+maintainers:
+  - id: adityapande-1995
+    name: Aditya Pande
+    email: aditya.pande@openrobotics.org
+  - id: ahcorde
+    name: Alejandro Hernández
+    email: ahcorde@osrfoundation.org
+  - id: audrow
+    name: Audrow Nash
+    email: audrow@openrobotics.org
+  - id: clalancette
+    name: Chris Lalancette
+    email: clalancette@openrobotics.org
+  - id: gbiggs
+    name: Geoffrey Biggs
+    email: geoff@openrobotics.org
+  - id: hidmic
+    name: Michel Hidalgo
+    email: michel@ekumenlabs.com
+  - id: ivanpauno
+    name: Ivan Paunovic
+    email: ivanpauno@ekumenlabs.com
+  - id: jacobperron
+    name: Jacob Perron
+    email: jacob@openrobotics.org
+  - id: mabelzhang
+    name: Mabel Zhang
+    email: mabel@openrobotics.org
+  - id: mjcarroll
+    name: Michael Carroll
+    email: michael@openrobotics.org
+  - id: mjeronimo
+    name: Michael Jeronimo
+    email: michael.jeronimo@openrobotics.org
+  - id: nuclearsandwich
+    name: Steven! Ragnarök
+    email: steven@openrobotics.org
+  - id: scpeters
+    name: Steve Peters
+    email: scpeters@openrobotics.org
+  - id: sloretz
+    name: Shane Loretz
+    email: sloretz@openrobotics.org
+  - id: tfoote
+    name: Tully Foote
+    email: tfoote@osrfoundation.org
+  - id: wjwwood
+    name: William Woodall
+    email: william@osrfoundation.org
