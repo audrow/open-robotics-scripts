@@ -81,16 +81,16 @@ async function main(config: Config) {
       // I don't like this either
       await sleep(0.5);
 
-      await makeCommit(repo.path, commitMessage, {
-        isVerbose: options.isVerbose,
-      });
-      await pushBranch({
-        cwd: repo.path,
-        branch: options.workingBranch,
-        isForce: true,
-      }, { isVerbose: options.isVerbose, isDryRun: options.isDryRun });
       const repoName = getRepo(repo.url);
       try {
+        await makeCommit(repo.path, commitMessage, {
+          isVerbose: options.isVerbose,
+        });
+        await pushBranch({
+          cwd: repo.path,
+          branch: options.workingBranch,
+          isForce: true,
+        }, { isVerbose: options.isVerbose, isDryRun: options.isDryRun });
         await makePullRequest({
           cwd: repo.path,
           repo: repoName,
