@@ -57,9 +57,15 @@ async function main(config: Config) {
       repo.path = dest;
     }
 
-    const maintainers = getMaintainers(repo.maintainerIds, config.maintainers);
-    maintainers.sort((a, b) => a.name.localeCompare(b.name));
+    let maintainers: Maintainer[] = [];
+    try {
+      maintainers = getMaintainers(repo.maintainerIds, config.maintainers);
+    } catch (error) {
+      allErrors.push({ path: repo.path, error });
+      continue;
+    }
 
+    maintainers.sort((a, b) => a.name.localeCompare(b.name));
     await checkoutBranch(repo.path, options.workingBranch);
     const { errors } = await updateMaintainers(repo.path, maintainers);
     allErrors.push(...errors);
@@ -97,7 +103,7 @@ async function main(config: Config) {
     console.error(
       `\n${allErrors.length} errors occurred while updating maintainers.`,
     );
-    console.log("Errors");
+    console.log("Errors:");
     allErrors.forEach((error) => {
       console.error(`- ${error.error.message}`);
     });
