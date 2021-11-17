@@ -3,6 +3,7 @@ import {
   clone,
   exists,
   join,
+  parse as yamlParse,
   stringify as yamlStringify,
 } from "../deps.ts";
 
@@ -140,6 +141,8 @@ cli.command("make-config", "Make a config file")
   .option("-o, --output <path>", "Path to output file", {
     default: "config.yaml",
   })
+  .option("--maintainers-file <path>", "Path to maintainers YAML file")
+  .option("--repositories-file <path>", "Path to repositories YAML file")
   .option("--dry-run", "Print the text, don't save the file")
   .action(async (options) => {
     const defaultOptions: Options = {
@@ -149,30 +152,44 @@ cli.command("make-config", "Make a config file")
       pullRequestTitle: "Update maintainers",
       workingBranch: "update-maintainers",
     };
-    const exampleMaintainer: Maintainer[] = [
-      {
-        id: "audrow",
-        name: "Audrow Nash",
-        email: "audrow@openrobotics.org",
-      },
-      {
-        id: "notaudrow",
-        name: "Not Audrow",
-        email: "notaudrow@openrobotics.org",
-      },
-    ];
-    const exampleRepo: Repository[] = [
-      {
-        url: "https://github.com/audrow/ros2cli",
-        branch: "master",
-        maintainerIds: ["audrow", "notaudrow"],
-      },
-    ];
+    let maintainers: Maintainer[] = [];
+    if (options.maintainersFile) {
+      maintainers = await yamlParse(
+        await Deno.readTextFile(options.maintainersFile)
+      ) as Maintainer[];
+    } else {
+      maintainers = [
+        {
+          id: "audrow",
+          name: "Audrow Nash",
+          email: "audrow@openrobotics.org",
+        },
+        {
+          id: "notaudrow",
+          name: "Not Audrow",
+          email: "notaudrow@openrobotics.org",
+        },
+      ];
+    }
+    let repositories: Repository[] = [];
+    if (options.repositoriesFile) {
+      repositories = await yamlParse(
+        await Deno.readTextFile(options.repositoriesFile)
+      ) as Repository[];
+    } else {
+      repositories = [
+        {
+          url: "https://github.com/audrow/ros2cli",
+          branch: "master",
+          maintainerIds: ["audrow", "notaudrow"],
+        },
+      ];
+    }
 
     const config = makeConfig({
       options: defaultOptions,
-      maintainers: exampleMaintainer,
-      repositories: exampleRepo,
+      maintainers,
+      repositories,
     });
     const configText = yamlStringify(config);
     if (options.dryRun) {
