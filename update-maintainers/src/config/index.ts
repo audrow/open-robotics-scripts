@@ -16,7 +16,7 @@ export function getMaintainers(
     if (maintainer) {
       out.push(maintainer);
     } else {
-      throw new Error(`Maintainer ${id} not found`);
+      throw new Error(`Maintainer '${id}' not found`);
     }
   });
   return out;
