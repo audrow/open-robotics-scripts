@@ -3,9 +3,14 @@ import { sleep } from "../../deps.ts";
 export async function checkoutBranch(
   cwd: string,
   branch: string,
+  isNewBranch: boolean = false,
   options: CommandOptions = {},
 ) {
-  await runCommand(cwd, ["git", "checkout", "-b", branch], options);
+  if (isNewBranch) {
+    await runCommand(cwd, ["git", "checkout", "-b", branch], options);
+  } else {
+    await runCommand(cwd, ["git", "checkout", branch], options);
+  }
 }
 
 export async function makeCommit(

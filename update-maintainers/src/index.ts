@@ -55,6 +55,7 @@ async function main(config: Config) {
       const dest = join(tempDir, orgName, repoName);
       await clone(repo.url, dest);
       repo.path = dest;
+      await checkoutBranch(repo.path, repo.branch, false);
     }
 
     let maintainers: Maintainer[] = [];
@@ -66,7 +67,7 @@ async function main(config: Config) {
     }
 
     maintainers.sort((a, b) => a.name.localeCompare(b.name));
-    await checkoutBranch(repo.path, options.workingBranch);
+    await checkoutBranch(repo.path, options.workingBranch, true);
     const { errors } = await updateMaintainers(repo.path, maintainers);
     allErrors.push(...errors);
 
