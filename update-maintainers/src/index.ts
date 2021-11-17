@@ -160,9 +160,9 @@ cli.command("make-config", "Make a config file")
     };
     let maintainers: Maintainer[] = [];
     if (options.maintainersFile) {
-      maintainers = await yamlParse(
+      maintainers = (await yamlParse(
         await Deno.readTextFile(options.maintainersFile),
-      ) as Maintainer[];
+      ) as { maintainers: Maintainer[] }).maintainers;
     } else {
       maintainers = [
         {
@@ -179,9 +179,9 @@ cli.command("make-config", "Make a config file")
     }
     let repositories: Repository[] = [];
     if (options.repositoriesFile) {
-      repositories = await yamlParse(
+      repositories = (await yamlParse(
         await Deno.readTextFile(options.repositoriesFile),
-      ) as Repository[];
+      ) as { repositories: Repository[] }).repositories;
     } else {
       repositories = [
         {
