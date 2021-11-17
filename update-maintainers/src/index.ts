@@ -160,7 +160,7 @@ cli.command("make-config", "Make a config file")
   .action(async (options) => {
     const defaultOptions: Options = {
       isVerbose: false,
-      isDryRun: true,
+      isDryRun: false,
       isOverwrite: true,
       pullRequestTitle: "Update maintainers",
       workingBranch: "update-maintainers",
