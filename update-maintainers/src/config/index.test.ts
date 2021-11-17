@@ -1,5 +1,5 @@
 import { Config, Maintainer, Repository } from "./types.ts";
-import { makeConfig, updateConfig } from "./index.ts";
+import { makeConfig } from "./index.ts";
 import { assertEquals } from "../../deps.test.ts";
 
 const maintainers: Maintainer[] = [
@@ -52,38 +52,6 @@ Deno.test("make config", () => {
       },
     } as Config,
     makeConfig({
-      maintainers: maintainers,
-      repositories: repositories,
-      options: {
-        isVerbose: false,
-      },
-    }),
-    "full setup",
-  );
-});
-
-Deno.test("update empty config", () => {
-  const emptyConfig = makeConfig({});
-
-  assertEquals(
-    {
-      maintainers: [],
-      repositories: [],
-      options: {},
-    } as Config,
-    updateConfig(emptyConfig, {}),
-    "empty config",
-  );
-
-  assertEquals(
-    {
-      maintainers: maintainers,
-      repositories: repositories,
-      options: {
-        isVerbose: false,
-      },
-    } as Config,
-    updateConfig(emptyConfig, {
       maintainers: maintainers,
       repositories: repositories,
       options: {

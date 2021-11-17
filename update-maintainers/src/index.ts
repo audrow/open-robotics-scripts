@@ -1,24 +1,41 @@
-import { clone, exists, join } from "../deps.ts";
+import {
+  cac,
+  clone,
+  exists,
+  join,
+  stringify as yamlStringify,
+} from "../deps.ts";
 
 import { getRepo, getRepoParts, listItems } from "./utils/index.ts";
 import { updateMaintainers } from "./maintainer-files/index.ts";
 import type { UpdateError } from "./maintainer-files/types.ts";
-import type { Config } from "./config/types.ts";
+import type {
+  Config,
+  Maintainer,
+  Options,
+  Repository,
+} from "./config/types.ts";
 import {
   checkoutBranch,
   makeCommit,
   makePullRequest,
   pushBranch,
 } from "./cli/index.ts";
-import { getMaintainers, load as loadConfig } from "./config/index.ts";
+import {
+  getMaintainers,
+  load as loadConfig,
+  makeConfig,
+  updateConfig,
+} from "./config/index.ts";
 
 async function main(config: Config) {
   const options = config.options;
+
   if (!options.pullRequestTitle) {
-    options.pullRequestTitle = "Update maintainers";
+    throw new Error("Missing --pullRequestTitle");
   }
   if (!options.workingBranch) {
-    options.workingBranch = "update-maintainers";
+    throw new Error("Missing --workingBranch");
   }
 
   const tempDir = "temp";
@@ -45,6 +62,8 @@ async function main(config: Config) {
     await checkoutBranch(repo.path, options.workingBranch);
     const { errors } = await updateMaintainers(repo.path, maintainers);
     allErrors.push(...errors);
+
+    // If no errors, proceed with making a PR - only prints if in dry run mode
     if (errors.length === 0) {
       const maintainerNames = listItems(maintainers.map((m) => m.name));
       const commitMessage = `Update maintainers to ${maintainerNames}`;
@@ -57,13 +76,20 @@ async function main(config: Config) {
         isForce: true,
       }, { isVerbose: options.isVerbose, isDryRun: options.isDryRun });
       const repoName = getRepo(repo.url);
-      await makePullRequest({
-        cwd: repo.path,
-        repo: repoName,
-        baseBranch: repo.branch,
-        title: options.pullRequestTitle,
-        body: commitMessage + ".",
-      }, { isVerbose: options.isVerbose, isDryRun: options.isDryRun });
+      try {
+        await makePullRequest({
+          cwd: repo.path,
+          repo: repoName,
+          baseBranch: repo.branch,
+          title: options.pullRequestTitle,
+          body: commitMessage + ".",
+        }, { isVerbose: options.isVerbose, isDryRun: options.isDryRun });
+      } catch (error) {
+        allErrors.push({
+          path: repo.path,
+          error,
+        });
+      }
     }
   }
   if (allErrors.length > 0) {
@@ -77,5 +103,85 @@ async function main(config: Config) {
   }
 }
 
-const config = await loadConfig("config.yaml");
-await main(config);
+const cli = cac("update-maintainers");
+
+cli.option("-v, --verbose", "verbose output");
+
+cli
+  .command("run", "Update the maintainers with detail from the config file")
+  .option("-c, --config <path>", "Path to config file", {
+    default: "config.yaml",
+  })
+  .option("--dry-run", "Don't push the changes or make the PR")
+  .option("--overwrite", "Overwrite content in the temp dir")
+  .option("--pull-request-title <title>", "Pull request title", {
+    default: "Update maintainers",
+  })
+  .option("--temp-dir", "Path to temp dir", {
+    default: "temp",
+  })
+  .option("--working-branch <branch>", "Branch to work on", {
+    default: "update-maintainers",
+  })
+  .action(async (options) => {
+    const readConfig = await loadConfig(options.config);
+    const configOptions: Options = {
+      isVerbose: options.verbose,
+      isDryRun: options.dryRun,
+      isOverwrite: options.overwrite,
+      pullRequestTitle: options.pullRequestTitle,
+      workingBranch: options.workingBranch,
+    };
+    const config = updateConfig(readConfig, { options: configOptions });
+    await main(config);
+  });
+
+cli.command("make-config", "Make a config file")
+  .option("-o, --output <path>", "Path to output file", {
+    default: "config.yaml",
+  })
+  .option("--dry-run", "Print the text, don't save the file")
+  .action(async (options) => {
+    const defaultOptions: Options = {
+      isVerbose: false,
+      isDryRun: true,
+      isOverwrite: true,
+      pullRequestTitle: "Update maintainers",
+      workingBranch: "update-maintainers",
+    };
+    const exampleMaintainer: Maintainer[] = [
+      {
+        id: "audrow",
+        name: "Audrow Nash",
+        email: "audrow@openrobotics.org",
+      },
+      {
+        id: "notaudrow",
+        name: "Not Audrow",
+        email: "notaudrow@openrobotics.org",
+      },
+    ];
+    const exampleRepo: Repository[] = [
+      {
+        url: "https://github.com/audrow/ros2cli",
+        branch: "master",
+        maintainerIds: ["audrow", "notaudrow"],
+      },
+    ];
+
+    const config = makeConfig({
+      options: defaultOptions,
+      maintainers: exampleMaintainer,
+      repositories: exampleRepo,
+    });
+    const configText = yamlStringify(config);
+    if (options.dryRun) {
+      console.log(configText);
+    } else {
+      await Deno.writeTextFile(options.output, configText);
+    }
+  });
+
+cli.help();
+cli.version("0.0.0");
+cli.parse();

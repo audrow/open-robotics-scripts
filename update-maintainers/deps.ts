@@ -7,3 +7,4 @@ export {
   parse,
   stringify,
 } from "https://deno.land/std@0.114.0/encoding/yaml.ts";
+export { cac } from "https://unpkg.com/cac/mod.ts";

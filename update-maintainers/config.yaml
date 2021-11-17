@@ -1,0 +1,22 @@
+options:
+  isOverwrite: true
+maintainers:
+  - id: audrow
+    name: Audrow Nash
+    email: audrow@openrobotics.org
+  - id: michelley
+    name: Michelley Chen
+    email: michelley@kimo.com
+  - id: aditya
+    name: Aditya Pande
+    email: aditya.pande@openrobotics.org
+  - id: michael
+    name: Michael Jeronimo
+    email: michael.jeronimo@openrobotics.org
+repositories:
+  - url: https://github.com/audrow/ros2cli
+    maintainerIds:
+    - audrow
+    - michelley
+    - aditya
+    branch: master

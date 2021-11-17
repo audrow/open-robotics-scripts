@@ -55,10 +55,20 @@ export function updateConfig(
   if (!parts.repositories) {
     parts.repositories = [];
   }
+  if (!parts.options) {
+    parts.options = {};
+  }
+  const options: Options = {
+    pullRequestTitle: parts.options.pullRequestTitle ||
+      config.options.pullRequestTitle,
+    workingBranch: parts.options.workingBranch || config.options.workingBranch,
+    isDryRun: parts.options.isDryRun || config.options.isDryRun,
+    isOverwrite: parts.options.isOverwrite || config.options.isOverwrite,
+    isVerbose: parts.options.isVerbose || config.options.isVerbose,
+  };
   return makeConfig({
     options: {
-      ...config.options,
-      ...parts.options,
+      ...options,
     },
     maintainers: [...config.maintainers, ...parts.maintainers],
     repositories: [...config.repositories, ...parts.repositories],
