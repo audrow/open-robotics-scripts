@@ -1,4 +1,4 @@
-import { Maintainer, ReadMaintainer } from "../../config/types.ts";
+import { Maintainer, Person } from "../../config/types.ts";
 
 export const MAINTAINERS: Maintainer[] = [
   {
@@ -18,7 +18,7 @@ export const MAINTAINERS: Maintainer[] = [
   },
 ];
 
-export const MAINTAINERS_READ: ReadMaintainer[] = MAINTAINERS.map((m) => ({
+export const MAINTAINERS_READ: Person[] = MAINTAINERS.map((m) => ({
   name: m.name,
   email: m.email,
 }));
@@ -31,11 +31,15 @@ export const PACKAGE_XML = `<?xml version="1.0"?>
   <description>
     The run command for ROS 2 command line tools.
   </description>
-  <maintainer email="mabel@openrobotics.org">Mabel Zhang</maintainer>
-  <maintainer email="audrow@openrobotics.org">Audrow Nash</maintainer>
+
+  <maintainer email="faux@fake.org">Faux Name</maintainer>
+  <maintainer email="foo@fake.org">Foo Bar</maintainer>
   <license>Apache License 2.0</license>
 
-  <author email="dthomas@osrfoundation.org">Dirk Thomas</author>
+  <author>Foo Bar</author>
+
+  <author email="faux@fake.org">Faux Name</author>
+  <author>Foo2 Bar</author>
 
   <depend>ros2cli</depend>
 
@@ -60,12 +64,16 @@ export const PACKAGE_XML_MODIFIED = `<?xml version="1.0"?>
   <description>
     The run command for ROS 2 command line tools.
   </description>
+
   <maintainer email="foo@fake.org">Foo Bar</maintainer>
   <maintainer email="bar@fake.org">Bar Baz</maintainer>
   <maintainer email="baz@fake.org">Baz Foo</maintainer>
+
   <license>Apache License 2.0</license>
 
-  <author email="dthomas@osrfoundation.org">Dirk Thomas</author>
+  <author email="faux@fake.org">Faux Name</author>
+  <author>Foo Bar</author>
+  <author>Foo2 Bar</author>
 
   <depend>ros2cli</depend>
 

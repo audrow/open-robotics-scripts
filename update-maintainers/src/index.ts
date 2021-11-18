@@ -91,12 +91,17 @@ async function main(config: Config) {
           branch: options.workingBranch,
           isForce: true,
         }, { isVerbose: options.isVerbose, isDryRun: options.isDryRun });
+
+        const maintainersInfo = listItems(
+          maintainers.map((m) => `${m.name} (@${m.id})`),
+        );
+        const pullRequestBody = `Update maintainers to ${maintainersInfo}.`;
         await makePullRequest({
           cwd: repo.path,
           repo: repoName,
           baseBranch: repo.branch,
           title: options.pullRequestTitle,
-          body: commitMessage + ".",
+          body: pullRequestBody,
         }, { isVerbose: options.isVerbose, isDryRun: options.isDryRun });
       } catch (error) {
         allErrors.push({

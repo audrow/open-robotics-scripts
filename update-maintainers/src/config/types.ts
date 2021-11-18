@@ -12,13 +12,14 @@ export type Options = {
   isVerbose?: boolean;
 };
 
-export type Maintainer = {
+export type Maintainer = Person & {
   id: string;
-  name: string;
-  email: string;
 };
 
-export type ReadMaintainer = Pick<Maintainer, "name" | "email">;
+export type Person = {
+  name: string;
+  email?: string;
+};
 
 export type Repository = {
   url: string;
