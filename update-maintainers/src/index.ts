@@ -79,7 +79,7 @@ async function main(config: Config) {
 
       // sleeping seems to be necessary to let the file system catch up
       // I don't like this either
-      await sleep(0.5);
+      await sleep(1);
 
       const repoName = getRepo(repo.url);
       try {
