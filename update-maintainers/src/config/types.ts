@@ -18,7 +18,7 @@ export type Maintainer = {
   email: string;
 };
 
-export type ReadMaintainer = Pick<Maintainer, "name" | "email">;
+export type Person = Pick<Maintainer, "name" | "email">;
 
 export type Repository = {
   url: string;
