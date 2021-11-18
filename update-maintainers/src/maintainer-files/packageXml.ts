@@ -8,12 +8,11 @@ export function getPackageXmlAuthors(path: string, text: string) {
   return getPackageXmlPerson(path, text, "author");
 }
 
-function personTagToRegex(tag: string) {
-  return new RegExp(`<${tag} email="(.*)">(.*)</${tag}>`, "g");
-}
-
 function getPackageXmlPerson(path: string, text: string, tag: string) {
-  const personRegex = personTagToRegex(tag);
+  const personRegex = new RegExp(
+    `<${tag}\\s*(?:|email="(.*)")>(.*)</${tag}>`,
+    "g",
+  );
   const matches = [
     ...text.matchAll(personRegex),
   ];
@@ -76,7 +75,7 @@ function isPersonInList(
 }
 
 function isSamePerson(p1: Person | Maintainer, p2: Person | Maintainer) {
-  return p1.name === p2.name && p1.email === p2.email;
+  return p1.name === p2.name;
 }
 
 function setPackageXmlAuthors(path: string, text: string, authors: Person[]) {
@@ -90,7 +89,7 @@ function setPackageXmlPeople(
   tag: string,
 ) {
   const regex = new RegExp(
-    `(\\n+)( *)(?:<${tag} email="(?:.*)">(?:.*)</${tag}>\\s*)+`,
+    `(\\n+)( *)(?:<${tag}\\s*(?:|email="(?:.*)")>(?:.*)</${tag}>\\s*)+`,
   );
   const match = text.match(regex);
   if (!match) {
@@ -98,11 +97,15 @@ function setPackageXmlPeople(
   }
   // match[1] captures the newline characters and makes it easy to put a space around the tag
   const indent = match[2];
-  let replaceString = "\n\n";
+  let replaceString = "\n\n"; // create a line before the tag group
   people.forEach((person) => {
-    replaceString +=
-      `${indent}<${tag} email="${person.email}">${person.name}</${tag}>\n`;
+    if (person.email) {
+      replaceString +=
+        `${indent}<${tag} email="${person.email}">${person.name}</${tag}>\n`;
+    } else {
+      replaceString += `${indent}<${tag}>${person.name}</${tag}>\n`;
+    }
   });
-  replaceString += `\n${indent}`;
+  replaceString += `\n${indent}`; // create an empty line after the tag group
   return text.replace(regex, replaceString);
 }

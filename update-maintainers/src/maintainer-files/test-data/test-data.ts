@@ -32,16 +32,15 @@ export const PACKAGE_XML = `<?xml version="1.0"?>
     The run command for ROS 2 command line tools.
   </description>
 
-
   <maintainer email="faux@fake.org">Faux Name</maintainer>
   <maintainer email="foo@fake.org">Foo Bar</maintainer>
   <license>Apache License 2.0</license>
+
+  <author>Foo Bar</author>
+
   <author email="faux@fake.org">Faux Name</author>
+  <author>Foo2 Bar</author>
 
-  <author email="foo@fake.org">Foo Bar</author>
-
-
-  <author email="foo2@fake.org">Foo2 Bar</author>
   <depend>ros2cli</depend>
 
   <exec_depend>ros2pkg</exec_depend>
@@ -73,8 +72,8 @@ export const PACKAGE_XML_MODIFIED = `<?xml version="1.0"?>
   <license>Apache License 2.0</license>
 
   <author email="faux@fake.org">Faux Name</author>
-  <author email="foo@fake.org">Foo Bar</author>
-  <author email="foo2@fake.org">Foo2 Bar</author>
+  <author>Foo Bar</author>
+  <author>Foo2 Bar</author>
 
   <depend>ros2cli</depend>
 
