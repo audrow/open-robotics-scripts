@@ -71,6 +71,9 @@ async function runCommand(
       `Would run the following command from ${cwd}: ${command.join(" ")}`,
     );
   } else {
+    if (options.isVerbose) {
+      console.log(`Running command from ${cwd}: ${command.join(" ")}`);
+    }
     const cmd = Deno.run({
       cmd: command,
       cwd,
@@ -79,7 +82,9 @@ async function runCommand(
     });
     const status = await cmd.status();
     if (!status.success) {
-      throw new Error(`Command failed: '${command.join(" ")}'`);
+      throw new Error(
+        `Command failed to run in '${cwd}': '${command.join(" ")}'`,
+      );
     }
   }
 }
