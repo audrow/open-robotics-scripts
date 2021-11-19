@@ -76,7 +76,7 @@ export function isPersonInList(
 }
 
 export function isSamePerson(p1: Person | Maintainer, p2: Person | Maintainer) {
-  return p1.name === p2.name;
+  return p1.name === p2.name || p1.email === p2.email;
 }
 
 export function comparePeopleByName(
