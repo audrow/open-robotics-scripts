@@ -12,7 +12,8 @@ Here are some high level notes on the script's behavior:
 - The `run` command uses the config file to update the maintainers for all
   repositories. You can run this with `--dry-run` to see what would be done.
 - The `status` command uses the config file to get the current maintainers for
-  all repositories. This is an easy way to see which repositories are not up-to-date.
+  all repositories. This is an easy way to see which repositories are not
+  up-to-date.
 - Create a config file with the `make-config` command. This command can accept
   file arguments to include maintainers and repositories from YAML files. These
   yaml files can be created with the
