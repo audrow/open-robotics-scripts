@@ -6,7 +6,7 @@ export async function load(path: string) {
   return parse(await Deno.readTextFile(path)) as Config;
 }
 
-export function getMaintainers(
+export function getMaintainersFromIds(
   maintainerIds: string[],
   maintainersList: Maintainer[],
 ) {
