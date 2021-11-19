@@ -3,8 +3,8 @@ maintainers:
     name: Aditya Pande
     email: aditya.pande@openrobotics.org
   - id: ahcorde
-    name: Alejandro Hernández
-    email: ahcorde@osrfoundation.org
+    name: Alejandro Hernandez Cordero
+    email: alejandro@openrobotics.org
   - id: audrow
     name: Audrow Nash
     email: audrow@openrobotics.org
@@ -40,10 +40,10 @@ maintainers:
     email: scpeters@openrobotics.org
   - id: sloretz
     name: Shane Loretz
-    email: sloretz@openrobotics.org
+    email: shane@openrobotics.org
   - id: tfoote
     name: Tully Foote
-    email: tfoote@osrfoundation.org
+    email: tfoote@openrobotics.org
   - id: wjwwood
     name: William Woodall
-    email: william@osrfoundation.org
+    email: william@openrobotics.org
