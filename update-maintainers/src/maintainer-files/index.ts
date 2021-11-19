@@ -3,7 +3,7 @@ import {
   getPackageXmlMaintainers,
   setPackageXmlMaintainers,
 } from "./packageXml.ts";
-import { getPathsToFiles, isObjectsEqual } from "../utils/index.ts";
+import { getPathsToFiles, isPeopleListsTheSame } from "../utils/index.ts";
 
 import type { UpdateError } from "./types.ts";
 import type { Maintainer } from "../config/types.ts";
@@ -21,7 +21,7 @@ export async function updateMaintainers(
     try {
       const fileText = await Deno.readTextFile(path);
       const currentMaintainers = getMaintainers(path, fileText);
-      if (!isObjectsEqual(currentMaintainers, maintainers)) {
+      if (!isPeopleListsTheSame(currentMaintainers, maintainers)) {
         const newFileText = setMaintainers(path, fileText, maintainers);
         await Deno.writeTextFile(path, newFileText);
       }

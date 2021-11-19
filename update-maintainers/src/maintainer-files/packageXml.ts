@@ -1,4 +1,5 @@
 import type { Maintainer, Person } from "../config/types.ts";
+import { comparePeopleByName, isPersonInList } from "../utils/index.ts";
 
 export function getPackageXmlMaintainers(path: string, text: string) {
   return getPackageXmlPerson(path, text, "maintainer");
@@ -49,33 +50,8 @@ function getOldMaintainersAsAuthors(
     const isCurrentAuthors = isPersonInList(maintainer, previousAuthors);
     return !isNewMaintainer && !isCurrentAuthors;
   });
-  const authors = [...previousAuthors, ...newAuthors].sort(sortByName);
+  const authors = [...previousAuthors, ...newAuthors].sort(comparePeopleByName);
   return authors;
-}
-
-function sortByName(a: Person | Maintainer, b: Person | Maintainer) {
-  if (a.name < b.name) {
-    return -1;
-  } else if (a.name > b.name) {
-    return 1;
-  }
-  return 0;
-}
-
-function isPersonInList(
-  person: Person | Maintainer,
-  people: Person[] | Maintainer[],
-) {
-  for (const p of people) {
-    if (isSamePerson(person, p)) {
-      return true;
-    }
-  }
-  return false;
-}
-
-function isSamePerson(p1: Person | Maintainer, p2: Person | Maintainer) {
-  return p1.name === p2.name;
 }
 
 function setPackageXmlAuthors(path: string, text: string, authors: Person[]) {

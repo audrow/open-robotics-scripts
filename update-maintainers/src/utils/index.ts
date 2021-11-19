@@ -1,4 +1,5 @@
 import { walk } from "../../deps.ts";
+import type { Maintainer, Person } from "../config/types.ts";
 
 export function listItems(items: string[]) {
   if (items.length === 0) {
@@ -44,4 +45,48 @@ export async function getPathsToFiles(path: string, match: RegExp[]) {
     paths.push(entry.path);
   }
   return paths;
+}
+
+export function isPeopleListsTheSame(
+  l1: Person[] | Maintainer[],
+  l2: Person[] | Maintainer[],
+) {
+  if (l1.length !== l2.length) {
+    return false;
+  }
+  for (let i = 0; i < l1.length; i++) {
+    const person = l1[i];
+    if (!isPersonInList(person, l2)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+export function isPersonInList(
+  person: Person | Maintainer,
+  people: Person[] | Maintainer[],
+) {
+  for (const p of people) {
+    if (isSamePerson(person, p)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+export function isSamePerson(p1: Person | Maintainer, p2: Person | Maintainer) {
+  return p1.name === p2.name || p1.email === p2.email;
+}
+
+export function comparePeopleByName(
+  a: Person | Maintainer,
+  b: Person | Maintainer,
+) {
+  if (a.name < b.name) {
+    return -1;
+  } else if (a.name > b.name) {
+    return 1;
+  }
+  return 0;
 }
