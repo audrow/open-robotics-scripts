@@ -25,7 +25,7 @@ export function isObjectsEqual(
 export function getRepoParts(url: string) {
   const match = url.match(/github.com\/(.*)\/([^.]*)/);
   if (!match) {
-    throw new Error("Could not parse repo url");
+    throw new Error(`Could not parse repo url: ${url}`);
   }
   const orgName = match[1];
   const repoName = match[2];
