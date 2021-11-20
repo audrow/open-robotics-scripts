@@ -274,6 +274,7 @@ async function createConfigFile(options: {
     console.log(configText);
   } else {
     await Deno.writeTextFile(options.output, configText);
+    console.log(`Config file created at ${options.output}`);
   }
 }
 
@@ -330,6 +331,34 @@ cli
   .option("--dry-run", "Print the text, don't save the file")
   .action(async (options) => {
     await createConfigFile(options);
+  });
+
+cli
+  .command("get-packages [maintainer]", "Get the packages maintained by a maintainer (use Github Id)")
+  .option("-c, --config <path>", "Path to config file", {
+    default: "config.yaml",
+  })
+  .action(async (maintainer, options) => {
+    const config = await loadConfig(options.config);
+    if (!config.maintainers.some((m) => m.id === maintainer)) {
+      console.error(`Maintainer ${maintainer} not found in config.`);
+      return;
+    }
+    let packages: string[] = [];
+    for (const repo of config.repositories) {
+      if (repo.maintainerIds.includes(maintainer)) {
+        packages.push(repo.url);
+      }
+    }
+    if (packages.length === 0) {
+      console.error(`No packages found for maintainer '${maintainer}'`);
+    } else {
+      console.log(`Packages for maintainer ${maintainer}:`);
+      packages.forEach(p => {
+        console.log(`- ${getRepo(p)}\n  ${p}\n`);
+      });
+      console.log(`Total: ${packages.length}`);
+    }
   });
 
 cli.help();

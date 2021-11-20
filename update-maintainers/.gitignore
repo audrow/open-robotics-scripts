@@ -1,2 +1,4 @@
 temp/
 repos/
+config*.yaml
+config*.yml
