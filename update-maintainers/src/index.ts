@@ -334,7 +334,10 @@ cli
   });
 
 cli
-  .command("get-packages [maintainer]", "Get the packages maintained by a maintainer (use Github Id)")
+  .command(
+    "get-packages [maintainer]",
+    "Get the packages maintained by a maintainer (use Github Id)",
+  )
   .option("-c, --config <path>", "Path to config file", {
     default: "config.yaml",
   })
@@ -344,7 +347,7 @@ cli
       console.error(`Maintainer ${maintainer} not found in config.`);
       return;
     }
-    let packages: string[] = [];
+    const packages: string[] = [];
     for (const repo of config.repositories) {
       if (repo.maintainerIds.includes(maintainer)) {
         packages.push(repo.url);
@@ -354,7 +357,7 @@ cli
       console.error(`No packages found for maintainer '${maintainer}'`);
     } else {
       console.log(`Packages for maintainer ${maintainer}:`);
-      packages.forEach(p => {
+      packages.forEach((p) => {
         console.log(`- ${getRepo(p)}\n  ${p}\n`);
       });
       console.log(`Total: ${packages.length}`);
