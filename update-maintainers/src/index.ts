@@ -23,12 +23,7 @@ import type {
   Options,
   Repository,
 } from "./config/types.ts";
-import {
-  checkoutBranch,
-  makeCommit,
-  makePullRequest,
-  pushBranch,
-} from "./cli/index.ts";
+import { checkoutBranch, cloneRepoIfNoPath, makePR } from "./cli/index.ts";
 import {
   getMaintainersFromIds,
   load as loadConfig,
@@ -56,13 +51,12 @@ async function updateRepoMaintainers(config: Config) {
   }
 
   const allErrors: UpdateError[] = [];
-  for (const repo of config.repositories) {
+
+  const repos = await cloneRepoIfNoPath(config.repositories, tempDir);
+
+  for (const repo of repos) {
     if (!repo.path) {
-      const { orgName, repoName } = getRepoParts(repo.url);
-      const dest = join(tempDir, orgName, repoName);
-      await clone(repo.url, dest);
-      repo.path = dest;
-      await checkoutBranch(repo.path, repo.branch, false);
+      throw new Error(`Repo ${repo.url} has no path`);
     }
 
     let maintainers: Maintainer[] = [];
@@ -76,42 +70,34 @@ async function updateRepoMaintainers(config: Config) {
       continue;
     }
 
-    maintainers.sort((a, b) => a.name.localeCompare(b.name));
     await checkoutBranch(repo.path, options.workingBranch, true);
     const { errors } = await updateMaintainers(repo.path, maintainers);
     allErrors.push(...errors);
 
     // If no errors, proceed with making a PR - only prints if in dry run mode
     if (errors.length === 0) {
-      const maintainerNames = listItems(maintainers.map((m) => m.name));
-      const commitMessage = `Update maintainers to ${maintainerNames}`;
-
       // sleeping seems to be necessary to let the file system catch up
       // I don't like this either
       await sleep(0.5);
 
-      const repoName = getRepo(repo.url);
+      const commitMessage = `Update maintainers to ${
+        listItems(maintainers.map((m) => m.name))
+      }`;
+      const pullRequestBody = `Update maintainers to ${
+        listItems(maintainers.map((m) => `${m.name} (@${m.id})`))
+      }.`;
       try {
-        await makeCommit(repo.path, commitMessage, {
-          isVerbose: options.isVerbose,
-        });
-        await pushBranch({
-          cwd: repo.path,
-          branch: options.workingBranch,
-          isForce: true,
-        }, { isVerbose: options.isVerbose, isDryRun: options.isDryRun });
-
-        const maintainersInfo = listItems(
-          maintainers.map((m) => `${m.name} (@${m.id})`),
-        );
-        const pullRequestBody = `Update maintainers to ${maintainersInfo}.`;
-        await makePullRequest({
-          cwd: repo.path,
-          repo: repoName,
+        await makePR({
+          path: repo.path,
+          repoName: getRepo(repo.url),
+          commitMessage: commitMessage,
+          prTitle: options.pullRequestTitle,
+          prBody: pullRequestBody,
+          workingBranch: options.workingBranch,
           baseBranch: repo.branch,
-          title: options.pullRequestTitle,
-          body: pullRequestBody,
-        }, { isVerbose: options.isVerbose, isDryRun: options.isDryRun });
+          isVerbose: options.isVerbose || false,
+          isDryRun: options.isDryRun || false,
+        });
       } catch (error) {
         allErrors.push({
           path: repo.path,
@@ -120,14 +106,20 @@ async function updateRepoMaintainers(config: Config) {
       }
     }
   }
-  if (allErrors.length > 0) {
+  printSuccessOrErrorInfo(allErrors);
+}
+
+function printSuccessOrErrorInfo(errors: UpdateError[]) {
+  if (errors.length > 0) {
     console.error(
-      `\n${allErrors.length} errors occurred while updating maintainers.`,
+      `\n${errors.length} errors occurred.`,
     );
     console.log("Errors:");
-    allErrors.forEach((error) => {
+    errors.forEach((error) => {
       console.error(`- ${error.error.message}`);
     });
+  } else {
+    console.log("\nSuccess!");
   }
 }
 

@@ -1,6 +1,7 @@
 import { Config, Maintainer, Options, Repository } from "./types.ts";
 
 import { parse } from "../../deps.ts";
+import { comparePeopleByName } from "../utils/index.ts";
 
 export async function load(path: string) {
   return parse(await Deno.readTextFile(path)) as Config;
@@ -19,6 +20,7 @@ export function getMaintainersFromIds(
       throw new Error(`Maintainer '${id}' not found`);
     }
   });
+  out.sort(comparePeopleByName);
   return out;
 }
 

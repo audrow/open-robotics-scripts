@@ -1,3 +1,51 @@
+import type { Repository } from "../config/types.ts";
+
+import { getRepoParts } from "../utils/index.ts";
+
+import { clone, join } from "../../deps.ts";
+
+export async function makePR(args: {
+  path: string;
+  repoName: string;
+  commitMessage: string;
+  prTitle: string;
+  prBody: string;
+  workingBranch: string;
+  baseBranch: string;
+  isVerbose: boolean;
+  isDryRun: boolean;
+}) {
+  await makeCommit(args.path, args.commitMessage, {
+    isVerbose: args.isVerbose,
+  });
+  await pushBranch({
+    cwd: args.path,
+    branch: args.workingBranch,
+    isForce: true,
+  }, { isVerbose: args.isVerbose, isDryRun: args.isDryRun });
+
+  await makePullRequest({
+    cwd: args.path,
+    repo: args.repoName,
+    baseBranch: args.baseBranch,
+    title: args.prTitle,
+    body: args.prBody,
+  }, { isVerbose: args.isVerbose, isDryRun: args.isDryRun });
+}
+
+export async function cloneRepoIfNoPath(repos: Repository[], baseDir: string) {
+  for (const repo of repos) {
+    if (!repo.path) {
+      const { orgName, repoName } = getRepoParts(repo.url);
+      const dest = join(baseDir, orgName, repoName);
+      await clone(repo.url, dest);
+      repo.path = dest;
+      await checkoutBranch(repo.path!, repo.branch, false);
+    }
+  }
+  return repos;
+}
+
 export async function checkoutBranch(
   cwd: string,
   branch: string,
