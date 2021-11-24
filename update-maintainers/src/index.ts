@@ -19,7 +19,11 @@ import type {
   Options,
   Repository,
 } from "./config/types.ts";
-import { getReposWithMaintainerId } from "./filters/index.ts";
+import {
+  getReposWithMaintainerId,
+  intersectRepos,
+  unionRepos,
+} from "./filters/index.ts";
 import { checkoutBranch, cloneRepoIfNoPath, makePR } from "./cli/index.ts";
 import {
   getMaintainersFromIds,
@@ -304,23 +308,42 @@ cli
 
 cli
   .command(
-    "get-packages [maintainer]",
-    "Get the packages maintained by a maintainer (use Github Id)",
+    "get-packages <...maintainers>",
+    "Get the repositories for a specific maintainer or maintainers (use Github Id)",
   )
   .option("-c, --config <path>", "Path to config file", {
     default: "config.yaml",
   })
-  .action(async (maintainer, options) => {
+  .option(
+    "--intersection",
+    "All maintainers listed must be on the repository (by default does the union)",
+  )
+  .action(async (maintainers, options) => {
     const config = await loadConfig(options.config);
-    if (!config.maintainers.some((m) => m.id === maintainer)) {
-      console.error(`Maintainer ${maintainer} not found in config.`);
-      return;
+
+    let repos: Repository[] = options.intersection ? config.repositories : [];
+    for (const maintainer of maintainers) {
+      if (!config.maintainers.some((m) => m.id === maintainer)) {
+        console.error(`Maintainer ${maintainer} not found in config.`);
+        return;
+      }
+      if (options.intersection) {
+        repos = intersectRepos(
+          getReposWithMaintainerId(config.repositories, maintainer),
+          repos,
+        );
+      } else {
+        repos = unionRepos(
+          getReposWithMaintainerId(config.repositories, maintainer),
+          repos,
+        );
+      }
     }
-    const repos = getReposWithMaintainerId(config.repositories, maintainer);
+
     if (repos.length === 0) {
-      console.error(`No repos found for maintainer '${maintainer}'`);
+      console.error(`No repos found for ${listItems(maintainers)}`);
     } else {
-      console.log(`Packages for maintainer ${maintainer}:`);
+      console.log(`Repos for ${listItems(maintainers)}:`);
       repos.forEach((p) => {
         console.log(`- ${getRepo(p.url)}\n  ${p.url}\n`);
       });
