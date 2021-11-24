@@ -2,7 +2,7 @@ import type { Repository } from "../config/types.ts";
 
 import { getRepoParts } from "../utils/index.ts";
 
-import { clone, join } from "../../deps.ts";
+import { clone, exists, join } from "../../deps.ts";
 
 export async function makePR(args: {
   path: string;
@@ -33,7 +33,19 @@ export async function makePR(args: {
   }, { isVerbose: args.isVerbose, isDryRun: args.isDryRun });
 }
 
-export async function cloneRepoIfNoPath(repos: Repository[], baseDir: string) {
+export async function cloneRepoIfNoPath(
+  repos: Repository[],
+  baseDir: string,
+  isOverwrite: boolean,
+) {
+  if (await exists(baseDir)) {
+    if (isOverwrite) {
+      await Deno.remove(baseDir, { recursive: true });
+    } else {
+      throw new Error(`Directory '${baseDir}' already exists`);
+    }
+  }
+
   for (const repo of repos) {
     if (!repo.path) {
       const { orgName, repoName } = getRepoParts(repo.url);

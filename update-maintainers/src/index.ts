@@ -1,8 +1,5 @@
 import {
   cac,
-  clone,
-  exists,
-  join,
   parse as yamlParse,
   sleep,
   stringify as yamlStringify,
@@ -11,7 +8,6 @@ import {
 import {
   getPathsToFiles,
   getRepo,
-  getRepoParts,
   isPeopleListsTheSame,
   listItems,
 } from "./utils/index.ts";
@@ -23,6 +19,7 @@ import type {
   Options,
   Repository,
 } from "./config/types.ts";
+import { getReposWithMaintainerId } from "./filters/index.ts";
 import { checkoutBranch, cloneRepoIfNoPath, makePR } from "./cli/index.ts";
 import {
   getMaintainersFromIds,
@@ -42,17 +39,12 @@ async function updateRepoMaintainers(config: Config) {
   }
 
   const tempDir = "temp";
-  if (await exists(tempDir)) {
-    if (options.isOverwrite) {
-      await Deno.remove(tempDir, { recursive: true });
-    } else {
-      throw new Error("Temp directory already exists");
-    }
-  }
-
   const allErrors: UpdateError[] = [];
-
-  const repos = await cloneRepoIfNoPath(config.repositories, tempDir);
+  const repos = await cloneRepoIfNoPath(
+    config.repositories,
+    tempDir,
+    options.isOverwrite ?? true,
+  );
 
   for (const repo of repos) {
     if (!repo.path) {
@@ -131,25 +123,18 @@ async function getMaintainerStatus(config: Config) {
   const options = config.options;
 
   const tempDir = "temp";
-  if (await exists(tempDir)) {
-    if (options.isOverwrite) {
-      await Deno.remove(tempDir, { recursive: true });
-    } else {
-      throw new Error("Temp directory already exists");
-    }
-  }
-
-  const repositoryStatuses: repoStatus[] = [];
   const allErrors: UpdateError[] = [];
-  for (const repo of config.repositories) {
-    if (!repo.path) {
-      const { orgName, repoName } = getRepoParts(repo.url);
-      const dest = join(tempDir, orgName, repoName);
-      await clone(repo.url, dest);
-      repo.path = dest;
-      await checkoutBranch(repo.path, repo.branch, false);
-    }
+  const repos = await cloneRepoIfNoPath(
+    config.repositories,
+    tempDir,
+    options.isOverwrite ?? true,
+  );
+  const repoStatuses: repoStatus[] = [];
 
+  for (const repo of repos) {
+    if (!repo.path) {
+      throw new Error(`Repo ${repo.url} has no path`);
+    }
     let desiredMaintainers: Maintainer[] = [];
     try {
       desiredMaintainers = getMaintainersFromIds(
@@ -179,24 +164,15 @@ async function getMaintainerStatus(config: Config) {
         updateErrors.push({ path, error });
       }
     }
-    repositoryStatuses.push({
+    repoStatuses.push({
       ...repo,
       isUpToDate,
     });
   }
-  if (allErrors.length > 0) {
-    console.error(
-      `\n${allErrors.length} errors occurred while getting maintainer status.`,
-    );
-    console.log("Errors:");
-    allErrors.forEach((error) => {
-      console.error(`- ${error.error.message}`);
-    });
-  }
-  const notUpToDateRepos = repositoryStatuses.filter((r) => !r.isUpToDate);
+  const notUpToDateRepos = repoStatuses.filter((r) => !r.isUpToDate);
   if (notUpToDateRepos.length > 0) {
     console.error(
-      `\n${notUpToDateRepos.length} out of ${repositoryStatuses.length} repositories are not up to date.`,
+      `\n${notUpToDateRepos.length} out of ${repoStatuses.length} repositories are not up to date.`,
     );
     console.log("Repositories:");
     notUpToDateRepos.forEach((repo) => {
@@ -204,9 +180,10 @@ async function getMaintainerStatus(config: Config) {
     });
   } else {
     console.log(
-      `All ${repositoryStatuses.length} repositories are up to date.`,
+      `All ${repoStatuses.length} repositories are up to date.`,
     );
   }
+  printSuccessOrErrorInfo(allErrors);
 }
 
 async function createConfigFile(options: {
@@ -339,20 +316,15 @@ cli
       console.error(`Maintainer ${maintainer} not found in config.`);
       return;
     }
-    const packages: string[] = [];
-    for (const repo of config.repositories) {
-      if (repo.maintainerIds.includes(maintainer)) {
-        packages.push(repo.url);
-      }
-    }
-    if (packages.length === 0) {
-      console.error(`No packages found for maintainer '${maintainer}'`);
+    const repos = getReposWithMaintainerId(config.repositories, maintainer);
+    if (repos.length === 0) {
+      console.error(`No repos found for maintainer '${maintainer}'`);
     } else {
       console.log(`Packages for maintainer ${maintainer}:`);
-      packages.forEach((p) => {
-        console.log(`- ${getRepo(p)}\n  ${p}\n`);
+      repos.forEach((p) => {
+        console.log(`- ${getRepo(p.url)}\n  ${p.url}\n`);
       });
-      console.log(`Total: ${packages.length}`);
+      console.log(`Total: ${repos.length}`);
     }
   });
 
