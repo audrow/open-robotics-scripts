@@ -1,6 +1,16 @@
-import { assertEquals, assertThrows } from "../../deps.test.ts";
+import { assert, assertEquals, assertThrows } from "../../deps.test.ts";
 
-import { getRepo, getRepoParts, isObjectsEqual, listItems } from "./index.ts";
+import {
+  comparePeopleByName,
+  getRepo,
+  getRepoParts,
+  isObjectsEqual,
+  isPeopleListsTheSame,
+  isPersonInList,
+  isSamePerson,
+  listItems,
+} from "./index.ts";
+import type { Maintainer, Person } from "../config/types.ts";
 
 Deno.test("list different number of items", () => {
   const testCases: { input: string[]; expected: string; comment: string }[] = [
@@ -119,4 +129,80 @@ Deno.test("get repo throws on bad URL", () => {
   assertThrows(() => {
     getRepo(url);
   });
+});
+
+const p1: Person = {
+  name: "Audrow",
+  email: "audrow@hey.com",
+};
+const p2: Person = {
+  name: "Not Audrow",
+  email: "notaudrow@hey.com",
+};
+const m1: Maintainer = {
+  ...p1,
+  id: "audrow",
+};
+const m2: Maintainer = {
+  ...p2,
+  id: "notaudrow",
+};
+
+Deno.test("is same person", () => {
+  assert(isSamePerson(p1, p1));
+  assert(isSamePerson(p1, m1));
+  assert(isSamePerson(p2, p2));
+  assert(isSamePerson(p2, m2));
+
+  assert(!isSamePerson(p1, p2));
+  assert(!isSamePerson(p1, p2));
+  assert(!isSamePerson(p1, m2));
+  assert(!isSamePerson(p2, m1));
+});
+
+Deno.test("is lists of people the same", () => {
+  assert(isPeopleListsTheSame([p1, p2], [p1, p2]));
+  assert(isPeopleListsTheSame([p1, p2], [p2, p1]));
+  assert(isPeopleListsTheSame([p1, p2], [m1, m2]));
+  assert(isPeopleListsTheSame([p1, p2], [m2, m1]));
+
+  assert(!isPeopleListsTheSame([], [p1, p2]));
+  assert(!isPeopleListsTheSame([p1], [p1, p2]));
+  assert(!isPeopleListsTheSame([p1, p2], [p1, p2, p1]));
+});
+
+Deno.test("is person in list", () => {
+  assert(isPersonInList(p1, [p1, p2]));
+  assert(isPersonInList(p1, [p2, p1]));
+  assert(isPersonInList(p1, [m1, m2]));
+  assert(isPersonInList(p1, [m2, m1]));
+
+  assert(isPersonInList(m1, [p1, p2]));
+  assert(isPersonInList(m1, [p2, p1]));
+  assert(isPersonInList(m1, [m1, m2]));
+  assert(isPersonInList(m1, [m2, m1]));
+
+  assert(!isPersonInList(p1, []));
+  assert(!isPersonInList(p1, [p2]));
+  assert(!isPersonInList(m1, [p2]));
+  assert(!isPersonInList(p1, [m2]));
+  assert(!isPersonInList(m1, [m2]));
+});
+
+Deno.test("compare people by names", () => {
+  assertEquals(comparePeopleByName(p1, p1), 0);
+  assertEquals(comparePeopleByName(p1, p2), -1);
+  assertEquals(comparePeopleByName(p2, p1), 1);
+
+  assertEquals(comparePeopleByName(m1, p1), 0);
+  assertEquals(comparePeopleByName(m1, p2), -1);
+  assertEquals(comparePeopleByName(p2, m1), 1);
+
+  assertEquals(comparePeopleByName(p1, m1), 0);
+  assertEquals(comparePeopleByName(p1, m2), -1);
+  assertEquals(comparePeopleByName(m2, p1), 1);
+
+  assertEquals(comparePeopleByName(m1, m1), 0);
+  assertEquals(comparePeopleByName(m1, m2), -1);
+  assertEquals(comparePeopleByName(m2, m1), 1);
 });
