@@ -1,6 +1,9 @@
 import { makeCli } from "./cli/index.ts";
 import { bumpFiles, getVersion, setFiles } from "./file_system/index.ts";
-import { getVersionFromString } from "./update_package/index.ts";
+import {
+  getVersionFromString,
+  getVersionString,
+} from "./update_package/index.ts";
 import type { BumpFn, GetFn, SetFn } from "./cli/index.ts";
 
 const bumpFn: BumpFn = async (path, bumpType) => {
@@ -14,7 +17,7 @@ const setFn: SetFn = async (path, version) => {
 };
 
 const getFn: GetFn = async (path) => {
-  console.log(`Current Version: ${await getVersion(path)}`);
+  console.log(`Current Version: ${getVersionString(await getVersion(path))}`);
 };
 
 const cli = makeCli({

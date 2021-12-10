@@ -75,7 +75,7 @@ export async function getVersion(directory: string): Promise<Version> {
   if (versionSet.size !== 1) {
     throw new Error(
       `Version is not consistent - got the following versions: ${
-        [...versionSet.keys()].join(" ")
+        [...versionSet.keys()].join(", ")
       }`,
     );
   }
