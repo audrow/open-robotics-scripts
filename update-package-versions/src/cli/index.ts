@@ -11,10 +11,10 @@ export function makeCli(args: {
   version?: string;
   bumpFn: BumpFn;
   setFn: SetFn;
-  getFn?: GetFn;
+  getFn: GetFn;
 }) {
   if (!args.name) {
-    args.name = "update-package-versions";
+    args.name = "update-ros-pkg-versions";
   }
   if (!args.defaultBumpType) {
     args.defaultBumpType = "patch";
@@ -28,14 +28,12 @@ export function makeCli(args: {
   cli.version(args.version);
 
   cli
-    .option("-d, --directory <directory>", "Directory to update", {
-      default: ".",
-    });
-
-  cli
     .command("bump", "Update package versions in a directory")
     .option("--bump-type <type>", "patch, minor, or major", {
       default: args.defaultBumpType,
+    })
+    .option("-d, --directory <directory>", "Directory to update", {
+      default: ".",
     })
     .action(async (options) => {
       const { directory, bumpType } = options;
@@ -44,19 +42,23 @@ export function makeCli(args: {
 
   cli
     .command("set <version>", "Set package versions in a directory")
+    .option("-d, --directory <directory>", "Directory to update", {
+      default: ".",
+    })
     .action(async (version, options) => {
       const { directory } = options;
       await args.setFn(directory, version);
     });
 
-  if (args.getFn) {
-    cli
-      .command("get", "Get package versions in a directory")
-      .action(async (options) => {
-        const { directory } = options;
-        await args.getFn!(directory);
-      });
-  }
+  cli
+    .command("get", "Get package versions in a directory")
+    .option("-d, --directory <directory>", "Directory to update", {
+      default: ".",
+    })
+    .action(async (options) => {
+      const { directory } = options;
+      await args.getFn!(directory);
+    });
 
   return cli;
 }
