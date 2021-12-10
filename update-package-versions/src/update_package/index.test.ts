@@ -136,7 +136,10 @@ Deno.test("throws on get bad version from string", () => {
     const badVersion of [
       "bad version",
       "1",
+      "1.",
       "1.0",
+      "1.0.",
+      "...",
       "1.0.0.0",
       "1.0.a",
       "1.a.0",
