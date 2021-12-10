@@ -39,7 +39,7 @@ function setVersionInText(text: string, regex: RegExp, version: Version) {
 }
 
 export function getVersionFromString(text: string) {
-  const versionNumbers = text.split(".").filter(a => a !== "").map(Number);
+  const versionNumbers = text.split(".").filter((a) => a !== "").map(Number);
   if (versionNumbers.length !== 3) {
     throw new Error(
       `Version string "${text}" does not have three numbers separated by dots.`,
