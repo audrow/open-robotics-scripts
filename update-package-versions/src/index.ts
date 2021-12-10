@@ -21,9 +21,9 @@ const getFn: GetFn = async (path) => {
 };
 
 const cli = makeCli({
-  name: "update-package-versions",
+  name: "update-ros-pkg-versions",
   defaultBumpType: "patch",
-  version: "0.0.1",
+  version: "1.0.0",
   bumpFn,
   setFn,
   getFn,
